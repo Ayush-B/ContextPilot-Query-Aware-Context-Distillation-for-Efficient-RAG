@@ -1,0 +1,5 @@
+Hybrid retrieval combines dense retrieval and sparse retrieval.
+
+Dense retrieval uses vector embeddings to find semantically similar text, while sparse retrieval methods such as BM25 rely on keyword overlap.
+
+A hybrid retriever often improves recall because it can capture both semantic similarity and exact term matching.

@@ -1,0 +1,5 @@
+Retrieval-augmented generation, or RAG, combines document retrieval with large language model generation.
+
+Instead of answering only from model parameters, a RAG system first retrieves relevant external documents and then uses them as evidence during response generation.
+
+This approach can improve factual grounding, reduce hallucinations, and allow the system to answer questions about information that was not present in model training data.

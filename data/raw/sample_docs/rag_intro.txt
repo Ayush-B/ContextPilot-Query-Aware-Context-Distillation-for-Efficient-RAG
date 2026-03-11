@@ -1,0 +1,3 @@
+This is a nested sample document.
+
+Its purpose is to confirm that the loader recursively scans subdirectories and assigns stable document identifiers based on relative paths.
