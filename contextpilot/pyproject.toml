@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contextpilot"
+version = "0.1.0"
+description = "Query-aware context distillation for efficient retrieval-augmented generation."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Ayush" }
+]
+dependencies = [
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.1",
+    "python-dotenv>=1.0.1",
+    "rich>=13.7.1",
+    "langchain>=0.3.0",
+    "langgraph>=0.2.0",
+    "langchain-openai>=0.2.0",
+    "chromadb>=0.5.5"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
