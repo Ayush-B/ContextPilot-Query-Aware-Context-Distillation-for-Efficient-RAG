@@ -16,20 +16,29 @@ build/
 dist/
 *.egg-info/
 
-# Editable install metadata
-contextpilot.egg-info/
-
 # Jupyter
 .ipynb_checkpoints/
 
 # Logs
 *.log
 
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# HuggingFace cache
+.cache/
+
 # Data outputs
 data/processed/*
 !data/processed/.gitkeep
+
 data/eval/*
 !data/eval/.gitkeep
+
+# Vector store artifacts
+data/vector_store/
 
 # OS files
 .DS_Store
