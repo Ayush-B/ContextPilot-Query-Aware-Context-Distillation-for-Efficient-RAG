@@ -1,58 +1,191 @@
 # ContextPilot
+Query-Aware Context Distillation for Efficient Retrieval-Augmented Generation (RAG)
 
-Query-Aware Context Distillation for Efficient Retrieval-Augmented Generation
+ContextPilot is an experimental Retrieval-Augmented Generation system that explores whether query-aware context distillation can reduce prompt size and latency while preserving grounded answer quality.
+
+---
+
+## Key Features
+
+• Modular RAG architecture  
+• Local dense retrieval using BGE embeddings and FAISS  
+• Provider-agnostic generation (OpenAI or Gemini)  
+• Experiment-ready pipeline for retrieval research  
+• Planned context distillation stage for prompt efficiency  
+
+---
 
 ## Overview
 
-ContextPilot is an experimental Retrieval-Augmented Generation (RAG) system that reduces prompt size and retrieval overhead by distilling retrieved context before generation.
+Traditional RAG pipelines retrieve several document chunks and send them directly to a language model. This increases prompt size, latency, and the chance that irrelevant context distracts the model.
 
-Traditional RAG pipelines retrieve several document chunks and pass them directly to a language model. This often increases token cost, latency, and the chance that irrelevant context distracts the model.
+ContextPilot introduces a context distillation stage that evaluates retrieved chunks and decides whether they should be:
 
-ContextPilot introduces an intermediate **context distillation stage** that evaluates retrieved chunks and decides whether they should be:
+• quoted verbatim  
+• compressed into shorter evidence statements  
+• dropped entirely  
 
-- quoted verbatim
-- compressed into a shorter evidence statement
-- dropped entirely
-
-The remaining information is assembled into a compact **Evidence Pack**, which is used by the model to generate the final answer.
+The remaining information is assembled into a compact Evidence Pack, which is then used by the language model to generate the final answer.
 
 ---
 
-## Core Idea
+## Research Question
 
-Standard RAG pipeline:
-
-Query → Retrieve Top-K Chunks → Send Chunks to LLM → Generate Answer
-
-ContextPilot pipeline:
-
-Query → Candidate Retrieval → Evidence Scoring → Distillation Decision (Quote | Compress | Drop) → Evidence Pack Assembly → LLM Generation
-
-Instead of sending all retrieved chunks to the model, ContextPilot constructs a compact evidence set containing only the most relevant information.
+Can a RAG system reduce prompt size and latency by distilling retrieved evidence while preserving grounded answer quality?
 
 ---
 
-## Distillation Strategy
+## System Architecture
 
-Each retrieved chunk is evaluated using several attributes:
+Current Raw RAG pipeline:
 
-- **Relevance** – similarity to the query  
-- **Novelty** – whether the chunk adds new information  
-- **Technical Density** – amount of useful information relative to length  
-- **Citation Value** – whether the chunk contains key definitions or explanations  
+```
+User Query
+    -> Retriever (FAISS + BGE embeddings)
+    -> Retrieved Chunks
+    -> Prompt Builder
+    -> LLM Generator (OpenAI / Gemini)
+    -> Generated Answer
+```
 
-Based on these signals, chunks are classified into three actions:
+Planned ContextPilot pipeline:
 
-**Quote**
+```
+Query
+    -> Candidate Retrieval
+    -> Evidence Scoring
+    -> Distillation Decision (Quote | Compress | Drop)
+    -> Evidence Pack
+    -> LLM Generation
+    -> Final Answer
+```
 
-High-relevance chunks that contain important technical details are kept unchanged.
+---
 
-**Compress**
+## Current Implementation Status
 
+### Sprint 0 — Project Setup
+
+Completed
+
+• repository initialization  
+• modular src package layout  
+• configuration system  
+• project schemas and settings  
+• working project entrypoint  
+
+---
+
+### Sprint 1 — Retrieval Foundation
+
+Completed
+
+• document loader for .txt and .md files  
+• token-based chunking pipeline  
+• embeddings using BAAI/bge-small-en-v1.5  
+• FAISS vector store with metadata  
+• semantic retriever interface  
+• ingestion pipeline script  
+• validation scripts for loader, chunker, and retriever  
+
+Retrieval pipeline
+
+```
+Documents
+    -> Loader
+    -> Chunker
+    -> Embeddings
+    -> FAISS Index
+    -> Retriever
+```
+
+---
+
+### Sprint 2 — Baseline RAG Pipelines
+
+Implemented
+
+• Raw RAG prompt builder  
+• LLM generation wrapper  
+• provider abstraction for OpenAI and Gemini  
+• end-to-end Raw RAG validation  
+
+Baseline pipeline
+
+```
+Query
+    -> Retriever
+    -> Prompt Builder
+    -> LLM Generator
+    -> Answer
+```
+
+---
+
+## Retrieval Stack
+
+The retrieval system uses a fully local dense retrieval architecture.
+
+Components
+
+• Document ingestion from data/raw  
+• Token-based chunking  
+• Dense embeddings using BAAI/bge-small-en-v1.5  
+• FAISS similarity search  
+• Top-k semantic retrieval  
+
+Technologies
+
+• FAISS for vector indexing  
+• SentenceTransformers embeddings  
+• modular retriever interface  
+• structured metadata for traceable sources  
+
+---
+
+## Example Run
+
+Example query
+
+```
+What is hybrid retrieval?
+```
+
+Model output
+
+```
+Hybrid retrieval combines dense retrieval and sparse retrieval. Dense retrieval uses vector embeddings to capture semantic similarity, while sparse retrieval methods such as BM25 rely on keyword overlap. Combining both approaches improves recall because the system can capture both semantic meaning and exact term matches.
+```
+
+This answer is generated from retrieved context rather than model parameters alone.
+
+---
+
+## Planned Distillation Strategy
+
+ContextPilot will evaluate each retrieved chunk using several signals.
+
+Relevance  
+Similarity between query and chunk.
+
+Novelty  
+Whether the chunk introduces new information.
+
+Technical Density  
+Amount of useful information relative to chunk length.
+
+Citation Value  
+Whether the chunk contains key explanations or definitions.
+
+Chunks are then classified into three actions.
+
+Quote  
+High-value chunks containing important technical details are kept unchanged.
+
+Compress  
 Chunks with useful information but unnecessary verbosity are summarized.
 
-**Drop**
-
+Drop  
 Chunks that are redundant or weakly related to the query are removed.
 
 ---
@@ -67,29 +200,82 @@ Evidence Pack
 [C2] Reranking improves final retrieval ordering.
 ```
 
-The language model generates the final answer using this distilled evidence rather than the full retrieved context.
+The final answer will be generated from this distilled evidence instead of the full retrieved context.
 
 ---
 
 ## Repository Structure
 
 ```
-contextpilot/
+.
+├─ data
+│  ├─ raw
+│  ├─ processed
+│  ├─ eval
+│  └─ vector_store
+│
+├─ notebooks
+├─ scripts
+├─ tests
+│
+├─ src
+│  └─ contextpilot
+│     ├─ config
+│     ├─ ingestion
+│     ├─ retrieval
+│     ├─ generation
+│     ├─ distillation
+│     ├─ evaluation
+│     ├─ graph
+│     ├─ models
+│     └─ main.py
+│
+├─ pyproject.toml
+├─ README.md
+└─ .env.example
+```
 
-src/
-    config/
-    ingestion/
-    retrieval/
-    distillation/
-    generation/
-    evaluation/
-    graph/
-    models/
-    main.py
+---
 
-data/
-notebooks/
-tests/
+## Quickstart
+
+Create and activate a virtual environment
+
+```
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+Install the project
+
+```
+pip install -e .
+```
+
+Configure environment variables
+
+```
+copy .env.example .env
+```
+
+Add API keys inside `.env`.
+
+Build the FAISS index
+
+```
+python scripts/ingest_data.py
+```
+
+Validate retrieval
+
+```
+python scripts/validate_retriever.py
+```
+
+Run the Raw RAG baseline
+
+```
+python scripts/validate_raw_rag.py
 ```
 
 ---
@@ -100,7 +286,7 @@ Sprint 0
 Project setup and architecture scaffold
 
 Sprint 1  
-Document ingestion and retrieval baseline
+Document ingestion and dense retrieval
 
 Sprint 2  
 Baseline RAG pipelines
@@ -115,12 +301,12 @@ Sprint 5
 Grounded generation
 
 Sprint 6  
-Benchmark and evaluation
+Benchmarking and evaluation
 
 ---
 
 ## Project Goal
 
-The goal of ContextPilot is to explore whether **query-aware context distillation** can reduce prompt size and latency while preserving the grounding benefits of retrieval.
+ContextPilot investigates whether query-aware context distillation can reduce prompt size and latency while preserving the grounding benefits of retrieval.
 
----
+The long-term objective is to design retrieval pipelines that deliver smaller, more informative context windows for language models while maintaining factual reliability.
